@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <vector>
+#include <algorithm>
 
 static int g_fail = 0;
 
@@ -56,8 +57,7 @@ static void test_rate_is_31250(void)
 
     v2_set_param(inst, "mode", "6");          /* Multi-Tap 1 (delay) */
     v2_set_param(inst, "time", "8");
-    v2_set_param(inst, "effect_level", "100");
-    v2_set_param(inst, "direct_level", "0");
+    v2_set_param(inst, "mix", "100");          /* fully wet */
 
     std::vector<float> ir;
     impulse_response(inst, ir, 1 << 15);
@@ -126,8 +126,7 @@ static void test_reverb_actually_decays(void)
     if (!inst) { ok(0, "instance created"); return; }
     v2_set_param(inst, "mode", "0");          /* Room 1 */
     v2_set_param(inst, "time", "8");
-    v2_set_param(inst, "effect_level", "100");
-    v2_set_param(inst, "direct_level", "0");
+    v2_set_param(inst, "mix", "100");          /* fully wet */
 
     std::vector<float> ir;
     impulse_response(inst, ir, 1 << 16);
@@ -180,17 +179,16 @@ static void test_state_save_restore(void)
     v2_set_param(a, "mode", "5");
     v2_set_param(a, "time", "11");
     v2_set_param(a, "pre_eq", "77");
-    v2_set_param(a, "effect_level", "33");
-    v2_set_param(a, "direct_level", "22");
+    v2_set_param(a, "mix", "63");
 
     char state[512];
     v2_get_param(a, "state", state, sizeof(state));
     v2_set_param(b, "state", state);
 
     char x[64], y[64];
-    const char *keys[] = {"mode", "time", "pre_eq", "effect_level", "direct_level"};
+    const char *keys[] = {"mode", "time", "pre_eq", "mix"};
     int all = 1;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         v2_get_param(a, keys[i], x, sizeof(x));
         v2_get_param(b, keys[i], y, sizeof(y));
         if (strcmp(x, y) != 0) { printf("    %s: %s != %s\n", keys[i], x, y); all = 0; }
@@ -231,6 +229,61 @@ static void test_metadata_json_is_wellformed(void)
     v2_destroy_instance(inst);
 }
 
+
+/* Equal-power: the blend must not dip through the middle of the sweep.
+ *
+ * Measuring the dry gain needs care. An earlier version of this test set mode 0
+ * and called that "reverb silenced" -- but mode 0 IS a reverb, so it measured
+ * wet+dry summed and reported nonsense (negative gains). The dry path is
+ * instantaneous while the wet path is delayed by the FIFO prime plus resampler
+ * group delay, so the FIRST sample of an impulse response is pure dry. */
+static double dry_gain_at_mix(int mix)
+{
+    void *inst = v2_create_instance(MODDIR, NULL);
+    if (!inst) return -999.0;
+    char v[8]; snprintf(v, sizeof(v), "%d", mix);
+    v2_set_param(inst, "mix", v);
+
+    const int BLK = 128;
+    std::vector<int16_t> b(BLK * 2, 0);
+
+    /* Settle the level smoother (~8 ms) on silence before probing. */
+    for (int k = 0; k < 400; k++) {
+        std::fill(b.begin(), b.end(), (int16_t)0);
+        v2_process_block(inst, b.data(), BLK);
+    }
+
+    const int16_t amp = 20000;
+    std::fill(b.begin(), b.end(), (int16_t)0);
+    b[0] = amp; b[1] = amp;
+    v2_process_block(inst, b.data(), BLK);
+    double g = b[0] / (double)amp;
+
+    v2_destroy_instance(inst);
+    return g;
+}
+
+static void test_mix_law_is_equal_power(void)
+{
+    printf("test_mix_law_is_equal_power\n");
+    int mixes[] = {0, 25, 50, 75, 100};
+    double g[5];
+    printf("    dry gain by mix: ");
+    for (int m = 0; m < 5; m++) {
+        g[m] = dry_gain_at_mix(mixes[m]);
+        printf("%d%%=%.3f ", mixes[m], g[m]);
+    }
+    printf("\n    (equal-power expects 1.000 0.924 0.707 0.383 0.000)\n");
+
+    ok(fabs(g[0] - 1.000) < 0.02, "mix 0 passes the dry signal at unity");
+    ok(fabs(g[2] - 0.707) < 0.03, "mix 50 sits at -3 dB (equal-power, not -6)");
+    ok(fabs(g[4] - 0.000) < 0.02, "mix 100 removes the dry signal");
+    ok(fabs(g[1] - 0.924) < 0.03 && fabs(g[3] - 0.383) < 0.03,
+       "quarter points follow the cosine, not a straight line");
+    /* The distinguishing check: a LINEAR law would put mix 50 at 0.500. */
+    ok(g[2] > 0.60, "the law is not a linear crossfade");
+}
+
 int main(void)
 {
     printf("=== RRV-10 module tests ===\n");
@@ -240,6 +293,7 @@ int main(void)
     test_missing_rom_passes_audio();
     test_params_round_trip();
     test_state_save_restore();
+    test_mix_law_is_equal_power();
     test_metadata_json_is_wellformed();
     printf("=== %s ===\n", g_fail ? "FAILURES" : "all tests passed");
     return g_fail ? 1 : 0;

@@ -35,10 +35,11 @@ and reports the missing file rather than failing to start.
 | Mode | 9 modes | Room 1/2, Hall 1/2, Plate 1/2, M-Tap 1 (delay), M-Tap 2 (reverse), Gate |
 | Decay/Gate | 0–15 | 16 switch positions, as on the hardware — not a continuum |
 | Pre-EQ | 0–100 | Tone into the reverb. 50 flat, below warmer, above brighter. Dry path untouched |
-| Effect Level | 0–100 | Reverb level |
-| Direct Level | 0–100 | Dry level — independent of Effect, not a single blend |
+| Mix | 0–100 | 0 dry, 100 wet. Equal-power, so the middle of the sweep holds its level |
 
-Mode indices are the front panel's order. Only ROM banks 0–8 hold programs
+The hardware has independent Effect and Direct level knobs; this exposes a single
+equal-power blend instead, which suits a chain insert better. Mode indices are the
+front panel's order. Only ROM banks 0–8 hold programs
 (9–14 are zero-filled), which is one of three independent confirmations that
 these nine are the whole unit — the others being the documentation and each
 program's measured impulse response.

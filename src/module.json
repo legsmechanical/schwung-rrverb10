@@ -2,7 +2,7 @@
   "id": "rrv10",
   "name": "RRV-10",
   "abbrev": "RRV",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Digital reverb emulation of an 80s Micro Rack unit (BOS-007 gate array)",
   "author": "Schwung RRV-10 port; chip emulation by Sergey V. Mikayev (MUNT), ROM research by giulioz",
   "license": "LGPL-2.1-or-later",
@@ -38,7 +38,7 @@
       "levels": {
         "root": {
           "name": "RRV-10",
-          "knobs": ["mode", "time", "pre_eq", "effect_level", "direct_level"],
+          "knobs": ["mode", "time", "pre_eq", "mix"],
           "params": [
             { "key": "editor", "label": "Bank Editor" },
             {
@@ -50,8 +50,7 @@
             },
             { "key": "time", "name": "Decay/Gate", "type": "int", "min": 0, "max": 15, "default": 8 },
             { "key": "pre_eq", "name": "Pre-EQ", "type": "int", "min": 0, "max": 100, "default": 50 },
-            { "key": "effect_level", "name": "Effect Lvl", "type": "int", "min": 0, "max": 100, "default": 40, "unit": "%" },
-            { "key": "direct_level", "name": "Direct Lvl", "type": "int", "min": 0, "max": 100, "default": 100, "unit": "%" }
+            { "key": "mix", "name": "Mix", "type": "int", "min": 0, "max": 100, "default": 30, "unit": "%" }
           ]
         }
       }

@@ -46,8 +46,7 @@
         "1 Mode",
         "2 Decay/Gate Time",
         "3 Pre-EQ (Tone)",
-        "4 Effect Level",
-        "5 Direct Level"
+        "4 Mix"
       ]
     },
     {
@@ -101,18 +100,24 @@
       ]
     },
     {
-      "title": "Levels",
+      "title": "Mix",
       "lines": [
-        "Effect Level is the",
-        "reverb, Direct Level",
-        "the dry signal.",
+        "0 is fully dry, 100",
+        "fully wet.",
         "",
-        "They are independent,",
-        "as on the unit - not a",
-        "single wet/dry blend.",
+        "Equal-power, so the",
+        "middle of the sweep",
+        "does not lose level",
+        "the way a straight",
+        "blend would.",
         "",
-        "For a send, set Direct",
-        "to 0."
+        "For a send, set 100.",
+        "",
+        "The hardware has two",
+        "independent Effect and",
+        "Direct level knobs;",
+        "this is one blend",
+        "instead."
       ]
     },
     {

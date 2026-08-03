@@ -86,12 +86,11 @@ typedef struct {
     int mode;           /* 0..8  — panel order, see kModeNames  */
     int time;           /* 0..15 — Decay/Gate Time              */
     int pre_eq;         /* 0..100, 50 = flat                    */
-    int effect_level;   /* 0..100                               */
-    int direct_level;   /* 0..100                               */
+    int mix;            /* 0 = dry only .. 100 = wet only       */
     int editor;         /* canvas bank-editor persisted bank    */
 
     /* --- smoothed control signals (zipper-free level/tone moves) --- */
-    float sm_effect, sm_direct, sm_pre_eq;
+    float sm_wet, sm_dry, sm_pre_eq;
 
     /* --- pre-EQ one-pole state --- */
     float eqL, eqR;
@@ -109,6 +108,16 @@ static const char *kModeNames[9] = {
 /* ---- helpers ----------------------------------------------------------- */
 
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+/* Equal-power wet/dry. Reverb tails are largely uncorrelated with the dry
+ * signal, so a linear crossfade audibly dips through the middle of the sweep
+ * while a sin/cos pair holds the summed power roughly constant. */
+static void mix_gains(int mix, float *wet, float *dry)
+{
+    float m = clampi(mix, 0, 100) * 0.01f * (float)M_PI * 0.5f;
+    *wet = sinf(m);
+    *dry = cosf(m);
+}
 
 static void rrv10_apply_program(rrv10_t *p)
 {
@@ -165,11 +174,9 @@ static void *v2_create_instance(const char *module_dir, const char *config_json)
     p->mode = 2;              /* Hall 1 — a useful default reverb        */
     p->time = 8;
     p->pre_eq = 50;           /* flat                                    */
-    p->effect_level = 40;
-    p->direct_level = 100;
+    p->mix = 30;              /* a send-ish default for an insert        */
     p->editor = 0;
-    p->sm_effect = 0.40f;
-    p->sm_direct = 1.00f;
+    mix_gains(p->mix, &p->sm_wet, &p->sm_dry);
     p->sm_pre_eq = 0.50f;
 
     p->rom_ok = load_rom(p, module_dir);
@@ -209,8 +216,10 @@ static void v2_process_block(void *instance, int16_t *io, int frames)
      * missing asset still passes audio. */
     if (!p->rom_ok || !p->emu) return;
 
-    const float tgt_effect = p->effect_level * 0.01f;
-    const float tgt_direct = p->direct_level * 0.01f;
+    /* Gains resolved once per block; only the smoothing runs per sample, so the
+     * sin/cos pair is not in the inner loop. */
+    float tgt_wet, tgt_dry;
+    mix_gains(p->mix, &tgt_wet, &tgt_dry);
     const float tgt_pre_eq = p->pre_eq * 0.01f;
     const float sm = 0.002f;   /* ~one-pole, ~8 ms at 44.1k — below zipper
                                 * threshold, above audible lag */
@@ -221,8 +230,8 @@ static void v2_process_block(void *instance, int16_t *io, int frames)
         float dryL = io[i * 2 + 0] / 32768.0f;
         float dryR = io[i * 2 + 1] / 32768.0f;
 
-        p->sm_effect += (tgt_effect - p->sm_effect) * sm;
-        p->sm_direct += (tgt_direct - p->sm_direct) * sm;
+        p->sm_wet += (tgt_wet - p->sm_wet) * sm;
+        p->sm_dry += (tgt_dry - p->sm_dry) * sm;
         p->sm_pre_eq += (tgt_pre_eq - p->sm_pre_eq) * sm;
 
         /* Pre-equalizer, ahead of the converter as on the hardware. The manual:
@@ -274,8 +283,8 @@ static void v2_process_block(void *instance, int16_t *io, int frames)
             p->fifo_count--;
         }
 
-        float oL = wL * p->sm_effect + dryL * p->sm_direct;
-        float oR = wR * p->sm_effect + dryR * p->sm_direct;
+        float oL = wL * p->sm_wet + dryL * p->sm_dry;
+        float oR = wR * p->sm_wet + dryR * p->sm_dry;
 
         if (oL >  1.0f) oL =  1.0f;
         if (oL < -1.0f) oL = -1.0f;
@@ -302,10 +311,8 @@ static void v2_set_param(void *instance, const char *key, const char *val)
         rrv10_apply_program(p);
     } else if (strcmp(key, "pre_eq") == 0) {
         p->pre_eq = clampi(atoi(val), 0, 100);
-    } else if (strcmp(key, "effect_level") == 0) {
-        p->effect_level = clampi(atoi(val), 0, 100);
-    } else if (strcmp(key, "direct_level") == 0) {
-        p->direct_level = clampi(atoi(val), 0, 100);
+    } else if (strcmp(key, "mix") == 0) {
+        p->mix = clampi(atoi(val), 0, 100);
     } else if (strcmp(key, "editor") == 0) {
         /* The canvas owns the real bound; clamp generously. */
         p->editor = clampi(atoi(val), 0, 31);
@@ -319,12 +326,11 @@ static void v2_set_param(void *instance, const char *key, const char *val)
             if ((s = strstr(val, "\"" k "\":")) != NULL &&                   \
                 sscanf(s + strlen(k) + 3, "%d", &v) == 1)                    \
                 p->field = clampi(v, lo, hi)
-        RRV10_RESTORE("mode",         mode,         0, 8);
-        RRV10_RESTORE("time",         time,         0, 15);
-        RRV10_RESTORE("pre_eq",       pre_eq,       0, 100);
-        RRV10_RESTORE("effect_level", effect_level, 0, 100);
-        RRV10_RESTORE("direct_level", direct_level, 0, 100);
-        RRV10_RESTORE("editor",       editor,       0, 31);
+        RRV10_RESTORE("mode",   mode,   0, 8);
+        RRV10_RESTORE("time",   time,   0, 15);
+        RRV10_RESTORE("pre_eq", pre_eq, 0, 100);
+        RRV10_RESTORE("mix",    mix,    0, 100);
+        RRV10_RESTORE("editor", editor, 0, 31);
         #undef RRV10_RESTORE
         rrv10_apply_program(p);
     }
@@ -338,8 +344,7 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
     if (strcmp(key, "mode") == 0)         return snprintf(buf, buf_len, "%d", p->mode);
     if (strcmp(key, "time") == 0)         return snprintf(buf, buf_len, "%d", p->time);
     if (strcmp(key, "pre_eq") == 0)       return snprintf(buf, buf_len, "%d", p->pre_eq);
-    if (strcmp(key, "effect_level") == 0) return snprintf(buf, buf_len, "%d", p->effect_level);
-    if (strcmp(key, "direct_level") == 0) return snprintf(buf, buf_len, "%d", p->direct_level);
+    if (strcmp(key, "mix") == 0)          return snprintf(buf, buf_len, "%d", p->mix);
     if (strcmp(key, "editor") == 0)       return snprintf(buf, buf_len, "%d", p->editor);
 
     if (strcmp(key, "name") == 0)         return snprintf(buf, buf_len, "RRV-10");
@@ -360,8 +365,7 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
             "{\"key\":\"pre_eq\",\"name\":\"Pre-EQ\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":50},"
             /* unit "%%" with an explicit max:100 tells the shared formatter the
              * values are already in display range, not normalised 0..1. */
-            "{\"key\":\"effect_level\",\"name\":\"Effect Lvl\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":40,\"unit\":\"%%\"},"
-            "{\"key\":\"direct_level\",\"name\":\"Direct Lvl\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":100,\"unit\":\"%%\"},"
+            "{\"key\":\"mix\",\"name\":\"Mix\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":30,\"unit\":\"%%\"},"
             "{\"key\":\"editor\",\"name\":\"Bank Editor\",\"type\":\"canvas\","
               "\"canvas_script\":\"canvas.js#bank_editor\",\"show_footer\":false,\"show_value\":false}"
             "]");
@@ -369,9 +373,8 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
 
     if (strcmp(key, "state") == 0) {
         return snprintf(buf, buf_len,
-            "{\"mode\":%d,\"time\":%d,\"pre_eq\":%d,"
-            "\"effect_level\":%d,\"direct_level\":%d,\"editor\":%d}",
-            p->mode, p->time, p->pre_eq, p->effect_level, p->direct_level, p->editor);
+            "{\"mode\":%d,\"time\":%d,\"pre_eq\":%d,\"mix\":%d,\"editor\":%d}",
+            p->mode, p->time, p->pre_eq, p->mix, p->editor);
     }
 
     if (strcmp(key, "ui_hierarchy") == 0) {
@@ -379,9 +382,9 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
             "{\"modes\":null,\"levels\":{"
               "\"root\":{"
                 "\"name\":\"RRV-10\","
-                "\"knobs\":[\"mode\",\"time\",\"pre_eq\",\"effect_level\",\"direct_level\"],"
+                "\"knobs\":[\"mode\",\"time\",\"pre_eq\",\"mix\"],"
                 "\"params\":[{\"key\":\"editor\",\"label\":\"Bank Editor\"},"
-                            "\"mode\",\"time\",\"pre_eq\",\"effect_level\",\"direct_level\"]"
+                            "\"mode\",\"time\",\"pre_eq\",\"mix\"]"
               "}"
             "}}";
         int len = (int)strlen(h);

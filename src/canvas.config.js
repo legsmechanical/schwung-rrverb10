@@ -42,13 +42,10 @@ const CONFIG = {
         /* Pre-equalizer: 50 is flat, below cuts highs (warmer), above cuts
          * lows (brighter). Bipolar so the arc reads out from centre. */
         bip("pre_eq", "Tone"),
-        /* Five cells wrap 4 + 1, so Dry sits alone on the second row. A blank()
-         * spacer would force a tidier 3 + 2 — but a spacer consumes its knob
-         * slot (engine.js: cellsFor(...)[cc-71], blanks return early), which
-         * would leave physical knob 4 dead and push Efct/Dry to knobs 5-6.
-         * A live contiguous 1-5 beats a prettier line break. */
-        uni("effect_level", "Efct"),
-        uni("direct_level", "Dry")
+        /* One wet/dry blend rather than the hardware's independent Effect and
+         * Direct levels: 0 = dry, 100 = wet, equal-power in between. Four cells
+         * fill a 128px row exactly, so the page no longer wraps. */
+        uni("mix", "Mix")
       ]
     }
   ],
@@ -65,8 +62,7 @@ const CONFIG = {
     mode: 2,
     time: 8,
     pre_eq: 50,
-    effect_level: 40,
-    direct_level: 100
+    mix: 30
   },
 
   testExports: { kModeLabels, kModeSquares }
