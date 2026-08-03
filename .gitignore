@@ -1,0 +1,6 @@
+# The program ROM is not ours to redistribute. Never commit it.
+roms/*.bin
+roms/*.rom
+
+build/
+dist/

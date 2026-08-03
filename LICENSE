@@ -1,0 +1,40 @@
+This module is distributed under the GNU Lesser General Public License,
+version 2.1 or (at your option) any later version.
+
+The canonical licence text is at:
+    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+
+PROVENANCE
+----------
+
+src/dsp/BossEmu.{h,cpp}
+    Copyright (C) 2013, 2014 Sergey V. Mikayev
+    LGPL-2.1-or-later, from the MUNT project.
+
+    Cycle-accurate emulation of the BOSS HG61H20R36F reverb gate array.
+    Carried essentially verbatim; the only change is `delete ram` corrected to
+    `delete[] ram` in the destructor (the buffer is `new short[RAM_SIZE]`).
+    The licence header inside those files is authoritative for them.
+
+src/dsp/rrv10.cpp
+src/dsp/resampler_poly.h
+src/canvas.config.js
+    Written for this module. LGPL-2.1-or-later, to match the above.
+
+    Note that the reference JUCE plugin this port drew on (giulioz/smol-rack)
+    is GPL-3.0, but that covers its JUCE wrapper, none of which is used here.
+    BossEmu carries its own LGPL notice independent of that repository, and
+    only BossEmu was taken.
+
+src/canvas.js
+    Generated from src/canvas.config.js by schwung-canvaskit. Committed so the
+    repository is self-contained.
+
+
+PROGRAM ROM
+-----------
+
+The unit's 16 KB program ROM is NOT part of this repository and is NOT
+distributed with the module. It remains the property of its rights holder.
+Users supply their own dump. See README.md.

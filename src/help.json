@@ -1,0 +1,132 @@
+{
+  "title": "RRV-10",
+  "children": [
+    {
+      "title": "Overview",
+      "lines": [
+        "Digital reverb from an",
+        "80s Micro Rack unit,",
+        "emulated at the chip",
+        "level from its own",
+        "program ROM.",
+        "",
+        "Nine effects: rooms,",
+        "halls, plates, a multi-",
+        "tap delay, a reverse",
+        "and a gate.",
+        "",
+        "LGPL-2.1-or-later."
+      ]
+    },
+    {
+      "title": "ROM required",
+      "lines": [
+        "Needs the unit's 16 KB",
+        "program ROM, which is",
+        "not distributable and",
+        "is not included.",
+        "",
+        "Put your own dump at",
+        "roms/rrv10.bin inside",
+        "the module folder, or",
+        "upload it from the web",
+        "manager.",
+        "",
+        "16384 bytes,",
+        "crc32 4B1D6D75.",
+        "",
+        "Without it the effect",
+        "passes audio through",
+        "unprocessed."
+      ]
+    },
+    {
+      "title": "Knobs",
+      "lines": [
+        "1 Mode",
+        "2 Decay/Gate Time",
+        "3 Pre-EQ (Tone)",
+        "4 Effect Level",
+        "5 Direct Level"
+      ]
+    },
+    {
+      "title": "Modes",
+      "lines": [
+        "Room 1  small room",
+        "Room 2  large room",
+        "Hall 1  small hall",
+        "Hall 2  large hall",
+        "Plate 1 plate",
+        "Plate 2 long plate",
+        "M-Tap 1 multi-tap",
+        "        delay",
+        "M-Tap 2 reverse",
+        "Gate    gated reverb"
+      ]
+    },
+    {
+      "title": "Decay/Gate",
+      "lines": [
+        "16 switch positions,",
+        "as on the hardware -",
+        "not a continuum.",
+        "",
+        "Sets reverb time in",
+        "the reverb modes, the",
+        "delay time in M-Tap 1,",
+        "and the gate/reverse",
+        "length in the last two.",
+        "",
+        "In M-Tap 1 it steps",
+        "the delay about 35 ms",
+        "per position, from",
+        "51 ms up to 474 ms."
+      ]
+    },
+    {
+      "title": "Pre-EQ",
+      "lines": [
+        "Tone control on the way",
+        "into the reverb, not on",
+        "the output.",
+        "",
+        "50 is flat. Below cuts",
+        "highs for a warmer",
+        "tail; above cuts lows",
+        "for a brighter one.",
+        "",
+        "The dry path is never",
+        "affected."
+      ]
+    },
+    {
+      "title": "Levels",
+      "lines": [
+        "Effect Level is the",
+        "reverb, Direct Level",
+        "the dry signal.",
+        "",
+        "They are independent,",
+        "as on the unit - not a",
+        "single wet/dry blend.",
+        "",
+        "For a send, set Direct",
+        "to 0."
+      ]
+    },
+    {
+      "title": "Bank Editor",
+      "lines": [
+        "Opens the on-device",
+        "canvas editor.",
+        "",
+        "Jog steps banks. Hold",
+        "SHIFT for the section",
+        "picker.",
+        "",
+        "Shift+Back closes it."
+      ]
+    }
+  ]
+}

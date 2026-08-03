@@ -1,0 +1,70 @@
+{
+  "id": "rrv10",
+  "name": "RRV-10",
+  "abbrev": "RRV",
+  "version": "0.1.0",
+  "description": "Digital reverb emulation of an 80s Micro Rack unit (BOS-007 gate array)",
+  "author": "Schwung RRV-10 port; chip emulation by Sergey V. Mikayev (MUNT), ROM research by giulioz",
+  "license": "LGPL-2.1-or-later",
+  "dsp": "rrv10.so",
+  "api_version": 2,
+  "component_type": "audio_fx",
+  "assets": {
+    "path": "roms",
+    "label": "ROM",
+    "extensions": [".bin", ".rom"],
+    "description": "Requires the unit's 16 KB program ROM",
+    "hint": "Dump of the MSM27C128 EPROM (v1.0.1). Not redistributable - supply your own.",
+    "files": [
+      {
+        "filename": "rrv10.bin",
+        "label": "Program ROM",
+        "size": 16384,
+        "crc32": "4B1D6D75",
+        "required": true
+      }
+    ]
+  },
+  "capabilities": {
+    "audio_in": true,
+    "audio_out": true,
+    "chainable": true,
+    "component_type": "audio_fx",
+    "requires_continuous_processing": true,
+    "host_canvas_ui": true,
+    "ui_hierarchy": {
+      "modes": null,
+      "_comment": "Mirror of the live ui_hierarchy served by get_param() in rrv10.cpp. The plugin is authoritative.",
+      "levels": {
+        "root": {
+          "name": "RRV-10",
+          "knobs": ["mode", "time", "pre_eq", "effect_level", "direct_level"],
+          "params": [
+            { "key": "editor", "label": "Bank Editor" },
+            {
+              "key": "mode",
+              "name": "Mode",
+              "type": "enum",
+              "default": 2,
+              "options": ["Room 1", "Room 2", "Hall 1", "Hall 2", "Plate 1", "Plate 2", "M-Tap 1", "M-Tap 2", "Gate"]
+            },
+            { "key": "time", "name": "Decay/Gate", "type": "int", "min": 0, "max": 15, "default": 8 },
+            { "key": "pre_eq", "name": "Pre-EQ", "type": "int", "min": 0, "max": 100, "default": 50 },
+            { "key": "effect_level", "name": "Effect Lvl", "type": "int", "min": 0, "max": 100, "default": 40, "unit": "%" },
+            { "key": "direct_level", "name": "Direct Lvl", "type": "int", "min": 0, "max": 100, "default": 100, "unit": "%" }
+          ]
+        }
+      }
+    },
+    "chain_params": [
+      {
+        "key": "editor",
+        "name": "Bank Editor",
+        "type": "canvas",
+        "canvas_script": "canvas.js#bank_editor",
+        "show_footer": false,
+        "show_value": false
+      }
+    ]
+  }
+}
