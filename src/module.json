@@ -2,7 +2,7 @@
   "id": "rrv10",
   "name": "RRV-10",
   "abbrev": "RRV",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Digital reverb emulation of an 80s Micro Rack unit (BOS-007 gate array)",
   "author": "Schwung RRV-10 port; chip emulation by Sergey V. Mikayev (MUNT), ROM research by giulioz",
   "license": "LGPL-2.1-or-later",

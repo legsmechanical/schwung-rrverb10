@@ -715,28 +715,37 @@ const kModeLabels = ["Room 1", "Room 2", "Hall 1", "Hall 2",
 const kModeSquares = ["RM1", "RM2", "HL1", "HL2",
                       "PL1", "PL2", "MT1", "MT2", "GAT"];
 
+/* A knob-style (arc) cell over an arbitrary integer range. `uni` is hardwired to
+ * 0..KIT_PARAM_MAX, and `count` would render the big numeric square instead — we
+ * want the arc, over 0..15. PICK sensitivity because the range is short: at the
+ * continuous KIT_SENS a 16-step param sweeps in 32 detents, which is twitchy. */
+function knobRange(key, label, lo, hi) {
+  return { key, label, kind: "unipolar", min: lo, max: hi, step: 1, sens: KIT_PICK_SENS };
+}
+
 const CONFIG = {
   name: "RRV-10",
 
-  /* Five editable params — the whole unit. Two banks rather than one so the
-   * SHIFT picker has something to pick, and so send levels sit apart from the
-   * reverb's own character controls. */
+  /* The whole unit is five controls, so it is one page — no bank nesting and
+   * nothing to drill into. The SHIFT picker still needs a section entry to
+   * point at (the engine indexes CONFIG.sections unguarded), but with a single
+   * bank there is nothing for it to switch between. */
   banks: [
     {
-      label: "Reverb",
+      label: "RRV-10",
       knobs: [
         enumc("mode", "Mode", kModeLabels, kModeSquares),
-        /* 0..15 detented switch positions on the hardware, not a continuum —
-         * `count` renders the big numeric read-out and steps one per detent. */
-        count("time", "Time", 0, 15),
+        /* 16 detented switch positions on the hardware, not a continuum — but
+         * shown as a knob, since that is how it reads on the panel. */
+        knobRange("time", "Time", 0, 15),
         /* Pre-equalizer: 50 is flat, below cuts highs (warmer), above cuts
          * lows (brighter). Bipolar so the arc reads out from centre. */
-        bip("pre_eq", "Tone")
-      ]
-    },
-    {
-      label: "Mix",
-      knobs: [
+        bip("pre_eq", "Tone"),
+        /* Five cells wrap 4 + 1, so Dry sits alone on the second row. A blank()
+         * spacer would force a tidier 3 + 2 — but a spacer consumes its knob
+         * slot (engine.js: cellsFor(...)[cc-71], blanks return early), which
+         * would leave physical knob 4 dead and push Efct/Dry to knobs 5-6.
+         * A live contiguous 1-5 beats a prettier line break. */
         uni("effect_level", "Efct"),
         uni("direct_level", "Dry")
       ]
@@ -744,11 +753,10 @@ const CONFIG = {
   ],
 
   sections: [
-    { name: "REVERB", bank: 0 },
-    { name: "MIX", bank: 1 }
+    { name: "RRV-10", bank: 0 }
   ],
 
-  icons: ["env", "pan"],
+  icons: ["env"],
 
   /* Mirrors the plugin's create_instance defaults. Only consumed off-device
    * (previewer / tests) — on device every read is live. */
