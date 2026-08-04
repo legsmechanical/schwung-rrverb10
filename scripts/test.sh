@@ -7,6 +7,6 @@ cd "$REPO_ROOT"
 mkdir -p build
 CXX="${CXX:-c++}"
 "$CXX" -O2 -std=c++17 -Isrc/dsp \
-    tests/test_rrv10.cpp src/dsp/BossEmu.cpp \
-    -o build/test_rrv10
-cd build && ./test_rrv10
+    tests/test_rrverb10.cpp src/dsp/BossEmu.cpp \
+    -o build/test_rrverb10
+cd build && ./test_rrverb10

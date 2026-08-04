@@ -17,7 +17,7 @@ src/dsp/BossEmu.{h,cpp}
     `delete[] ram` in the destructor (the buffer is `new short[RAM_SIZE]`).
     The licence header inside those files is authoritative for them.
 
-src/dsp/rrv10.cpp
+src/dsp/rrverb10.cpp
 src/dsp/resampler_poly.h
 src/canvas.config.js
     Written for this module. LGPL-2.1-or-later, to match the above.

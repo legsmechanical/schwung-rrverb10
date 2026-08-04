@@ -15,7 +15,7 @@
  *
  * Note the phase count L only sets TABLE SIZE, never per-sample work: the cost
  * of one output is TAPS multiply-accumulates regardless of L.  What actually
- * buys the cheap filter here is the source bandwidth: the RRV-10's effect path
+ * buys the cheap filter here is the source bandwidth: the RRVerb-10's effect path
  * is specified 30 Hz - 10 kHz, so the anti-alias transition band is wide and
  * 24 taps is transparent.  Measured round trip, bin-exact tones:
  *
@@ -72,7 +72,7 @@ typedef struct {
 
 /* fc_hz: lowpass cutoff in Hz. fs_in_hz: this stage's INPUT rate.
  * The cutoff must sit below BOTH Nyquist limits; caller passes the shared
- * 13 kHz figure, comfortably above the RRV-10's 10 kHz effect band and below
+ * 13 kHz figure, comfortably above the RRVerb-10's 10 kHz effect band and below
  * the 15618 Hz intermediate Nyquist. */
 static inline void rp_init(rp_stage_t *r, int L, int M, double fc_hz, double fs_in_hz)
 {

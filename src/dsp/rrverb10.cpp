@@ -1,4 +1,4 @@
-/* rrv10.cpp — Schwung audio FX wrapper around the BOSS HG61H20R36F reverb
+/* rrverb10.cpp — Schwung audio FX wrapper around the BOSS HG61H20R36F reverb
  * gate array emulation (BossEmu.cpp, LGPL-2.1+, (C) Sergey V. Mikayev / MUNT).
  *
  * The emulation is cycle-accurate against a dump of the unit's program ROM and
@@ -8,7 +8,7 @@
  * RATE (the one thing an off-the-shelf port gets wrong)
  * ----------------------------------------------------
  * The chip consumes 256 clock cycles per audio sample (PROCESSING_LOOP_CYCLES)
- * and the RRV-10 clocks it from an 8.000 MHz crystal, so its native rate is
+ * and the RRVerb-10 clocks it from an 8.000 MHz crystal, so its native rate is
  * 31250 Hz — which the service manual also states outright ("Sampling
  * Frequency: 31.25 kHz").  Driving one chip cycle per HOST sample instead, as
  * the reference JUCE plugin does, runs the emulation 41% fast: every decay
@@ -42,7 +42,7 @@ static const host_api_v1_t *g_host = NULL;
 static void v2_log(const char *msg)
 {
     char line[160];
-    snprintf(line, sizeof(line), "rrv10: %s", msg);
+    snprintf(line, sizeof(line), "rrverb10: %s", msg);
     if (g_host && g_host->log) g_host->log(line);
 }
 
@@ -53,7 +53,7 @@ static void v2_log(const char *msg)
 #define RP_DOWN_M 24
 #define RP_UP_L   24
 #define RP_UP_M   17
-#define RP_CUTOFF_HZ 13000.0    /* above the RRV-10's 10 kHz effect band,
+#define RP_CUTOFF_HZ 13000.0    /* above the RRVerb-10's 10 kHz effect band,
                                  * below the 15618 Hz intermediate Nyquist */
 
 /* The emulator's own I/O scaling, carried over from the reference plugin: chip
@@ -94,7 +94,7 @@ typedef struct {
 
     /* --- pre-EQ one-pole state --- */
     float eqL, eqR;
-} rrv10_t;
+} rrverb10_t;
 
 /* Panel order, verified three ways: only ROM banks 0-8 are non-zero, the unit's
  * documentation lists these nine, and each program's measured impulse response
@@ -119,14 +119,14 @@ static void mix_gains(int mix, float *wet, float *dry)
     *dry = cosf(m);
 }
 
-static void rrv10_apply_program(rrv10_t *p)
+static void rrverb10_apply_program(rrverb10_t *p)
 {
     if (p->emu) p->emu->setParameters(p->mode, p->time, 7); /* level: analog on
                                                              * the real unit, so
                                                              * RV_2 mode ignores it */
 }
 
-static void fifo_reset(rrv10_t *p)
+static void fifo_reset(rrverb10_t *p)
 {
     memset(p->fifoL, 0, sizeof(p->fifoL));
     memset(p->fifoR, 0, sizeof(p->fifoR));
@@ -141,7 +141,7 @@ static void fifo_reset(rrv10_t *p)
     }
 }
 
-static int load_rom(rrv10_t *p, const char *module_dir)
+static int load_rom(rrverb10_t *p, const char *module_dir)
 {
     char path[512];
     snprintf(path, sizeof(path), "%s/roms/rrv10.bin", module_dir ? module_dir : ".");
@@ -168,7 +168,7 @@ static int load_rom(rrv10_t *p, const char *module_dir)
 static void *v2_create_instance(const char *module_dir, const char *config_json)
 {
     (void)config_json;
-    rrv10_t *p = (rrv10_t *)calloc(1, sizeof(rrv10_t));
+    rrverb10_t *p = (rrverb10_t *)calloc(1, sizeof(rrverb10_t));
     if (!p) return NULL;
 
     p->mode = 2;              /* Hall 1 — a useful default reverb        */
@@ -184,7 +184,7 @@ static void *v2_create_instance(const char *module_dir, const char *config_json)
         /* RV_2 mode: this is a standalone Boss unit, not the MT-32 variant —
          * it selects the 1 KB-per-mode ROM layout and the analog output level. */
         p->emu = new BossEmu(p->rom, ROM_BYTES, BossEmu::RV_2_EMU_MODE);
-        rrv10_apply_program(p);
+        rrverb10_apply_program(p);
         v2_log("ROM loaded, emulation active");
     } else {
         v2_log(p->rom_status);
@@ -199,7 +199,7 @@ static void *v2_create_instance(const char *module_dir, const char *config_json)
 
 static void v2_destroy_instance(void *instance)
 {
-    rrv10_t *p = (rrv10_t *)instance;
+    rrverb10_t *p = (rrverb10_t *)instance;
     if (!p) return;
     delete p->emu;
     free(p);
@@ -209,7 +209,7 @@ static void v2_destroy_instance(void *instance)
 
 static void v2_process_block(void *instance, int16_t *io, int frames)
 {
-    rrv10_t *p = (rrv10_t *)instance;
+    rrverb10_t *p = (rrverb10_t *)instance;
     if (!p) return;
 
     /* No ROM: the effect is a no-op rather than silence, so a chain with a
@@ -300,15 +300,15 @@ static void v2_process_block(void *instance, int16_t *io, int frames)
 
 static void v2_set_param(void *instance, const char *key, const char *val)
 {
-    rrv10_t *p = (rrv10_t *)instance;
+    rrverb10_t *p = (rrverb10_t *)instance;
     if (!p || !key || !val) return;
 
     if (strcmp(key, "mode") == 0) {
         p->mode = clampi(atoi(val), 0, 8);
-        rrv10_apply_program(p);
+        rrverb10_apply_program(p);
     } else if (strcmp(key, "time") == 0) {
         p->time = clampi(atoi(val), 0, 15);
-        rrv10_apply_program(p);
+        rrverb10_apply_program(p);
     } else if (strcmp(key, "pre_eq") == 0) {
         p->pre_eq = clampi(atoi(val), 0, 100);
     } else if (strcmp(key, "mix") == 0) {
@@ -322,23 +322,23 @@ static void v2_set_param(void *instance, const char *key, const char *val)
          * and avoids pulling in a JSON parser. */
         const char *s;
         int v;
-        #define RRV10_RESTORE(k, field, lo, hi)                              \
+        #define RRVERB10_RESTORE(k, field, lo, hi)                              \
             if ((s = strstr(val, "\"" k "\":")) != NULL &&                   \
                 sscanf(s + strlen(k) + 3, "%d", &v) == 1)                    \
                 p->field = clampi(v, lo, hi)
-        RRV10_RESTORE("mode",   mode,   0, 8);
-        RRV10_RESTORE("time",   time,   0, 15);
-        RRV10_RESTORE("pre_eq", pre_eq, 0, 100);
-        RRV10_RESTORE("mix",    mix,    0, 100);
-        RRV10_RESTORE("editor", editor, 0, 31);
-        #undef RRV10_RESTORE
-        rrv10_apply_program(p);
+        RRVERB10_RESTORE("mode",   mode,   0, 8);
+        RRVERB10_RESTORE("time",   time,   0, 15);
+        RRVERB10_RESTORE("pre_eq", pre_eq, 0, 100);
+        RRVERB10_RESTORE("mix",    mix,    0, 100);
+        RRVERB10_RESTORE("editor", editor, 0, 31);
+        #undef RRVERB10_RESTORE
+        rrverb10_apply_program(p);
     }
 }
 
 static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
 {
-    rrv10_t *p = (rrv10_t *)instance;
+    rrverb10_t *p = (rrverb10_t *)instance;
     if (!p || !key || !buf) return -1;
 
     if (strcmp(key, "mode") == 0)         return snprintf(buf, buf_len, "%d", p->mode);
@@ -347,7 +347,7 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
     if (strcmp(key, "mix") == 0)          return snprintf(buf, buf_len, "%d", p->mix);
     if (strcmp(key, "editor") == 0)       return snprintf(buf, buf_len, "%d", p->editor);
 
-    if (strcmp(key, "name") == 0)         return snprintf(buf, buf_len, "RRV-10");
+    if (strcmp(key, "name") == 0)         return snprintf(buf, buf_len, "RRVerb-10");
     if (strcmp(key, "rom_status") == 0)   return snprintf(buf, buf_len, "%s", p->rom_status);
     if (strcmp(key, "mode_name") == 0)
         return snprintf(buf, buf_len, "%s", kModeNames[clampi(p->mode, 0, 8)]);
@@ -381,7 +381,7 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
         const char *h =
             "{\"modes\":null,\"levels\":{"
               "\"root\":{"
-                "\"name\":\"RRV-10\","
+                "\"name\":\"RRVerb-10\","
                 "\"knobs\":[\"mode\",\"time\",\"pre_eq\",\"mix\"],"
                 "\"params\":[{\"key\":\"editor\",\"label\":\"Bank Editor\"},"
                             "\"mode\",\"time\",\"pre_eq\",\"mix\"]"
@@ -397,7 +397,7 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
 
 /* ---- entry point ------------------------------------------------------- */
 
-#ifndef RRV10_TEST
+#ifndef RRVERB10_TEST
 static audio_fx_api_v2_t g_fx_api_v2;
 
 extern "C" audio_fx_api_v2_t *move_audio_fx_init_v2(const host_api_v1_t *host)
@@ -410,7 +410,7 @@ extern "C" audio_fx_api_v2_t *move_audio_fx_init_v2(const host_api_v1_t *host)
     g_fx_api_v2.process_block    = v2_process_block;
     g_fx_api_v2.set_param        = v2_set_param;
     g_fx_api_v2.get_param        = v2_get_param;
-    v2_log("RRV-10 v2 plugin initialized");
+    v2_log("RRVerb-10 v2 plugin initialized");
     return &g_fx_api_v2;
 }
 #endif

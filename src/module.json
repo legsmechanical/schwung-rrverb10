@@ -1,12 +1,12 @@
 {
-  "id": "rrv10",
-  "name": "RRV-10",
+  "id": "rrverb10",
+  "name": "RRVerb-10",
   "abbrev": "RRV",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Digital reverb emulation of an 80s Micro Rack unit (BOS-007 gate array)",
-  "author": "Schwung RRV-10 port; chip emulation by Sergey V. Mikayev (MUNT), ROM research by giulioz",
+  "author": "Schwung RRVerb-10 port; chip emulation by Sergey V. Mikayev (MUNT), ROM research by giulioz",
   "license": "LGPL-2.1-or-later",
-  "dsp": "rrv10.so",
+  "dsp": "rrverb10.so",
   "api_version": 2,
   "component_type": "audio_fx",
   "assets": {
@@ -34,10 +34,10 @@
     "host_canvas_ui": true,
     "ui_hierarchy": {
       "modes": null,
-      "_comment": "Mirror of the live ui_hierarchy served by get_param() in rrv10.cpp. The plugin is authoritative.",
+      "_comment": "Mirror of the live ui_hierarchy served by get_param() in rrverb10.cpp. The plugin is authoritative.",
       "levels": {
         "root": {
-          "name": "RRV-10",
+          "name": "RRVerb-10",
           "knobs": ["mode", "time", "pre_eq", "mix"],
           "params": [
             { "key": "editor", "label": "Bank Editor" },

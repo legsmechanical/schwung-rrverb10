@@ -1,13 +1,13 @@
-# schwung-rrv10
+# schwung-rrverb10 — RRVerb-10
 
 Chip-level emulation of a mid-80s Micro Rack digital reverb, as a Schwung audio
 FX module. Nine effects — rooms, halls, plates, a multi-tap delay, a reverse and
 a gated reverb — run from the unit's own program ROM.
 
 The DSP is [MUNT](https://github.com/munt/munt)'s `BossEmu`, a cycle-accurate
-model of the BOSS HG61H20R36F (BOS-007) reverb gate array, driven by a dump of
-the unit's 16 KB program ROM. Nothing about the reverb is modelled by ear or
-approximated: the ROM *is* the reverb algorithm, and the emulator executes it.
+model of the HG61H20R36F (BOS-007) reverb gate array, driven by a dump of the
+unit's 16 KB program ROM. Nothing here is modelled by ear or approximated: the
+ROM *is* the reverb algorithm, and the emulator executes it.
 
 ## You must supply the ROM
 
@@ -20,10 +20,12 @@ own dump:
 | size | 16384 bytes (MSM27C128 EPROM) |
 | crc32 | `4B1D6D75` |
 
+The filename keeps the original unit's designation because that is how the dump
+is known in the wild — the module is renamed, the ROM is not.
+
 Easiest route is the web manager at `http://move.local:7700` — the module
 declares the file in its `assets` block, so the manager shows an upload slot and
-verifies size and CRC for you. Or `./scripts/install.sh --with-rom` if you keep
-a copy in this repo's `roms/` (git-ignored).
+verifies size and CRC for you.
 
 **Without the ROM the effect still loads and passes audio through unprocessed**,
 and reports the missing file rather than failing to start.
@@ -38,15 +40,20 @@ and reports the missing file rather than failing to start.
 | Mix | 0–100 | 0 dry, 100 wet. Equal-power, so the middle of the sweep holds its level |
 
 The hardware has independent Effect and Direct level knobs; this exposes a single
-equal-power blend instead, which suits a chain insert better. Mode indices are the
-front panel's order. Only ROM banks 0–8 hold programs
-(9–14 are zero-filled), which is one of three independent confirmations that
-these nine are the whole unit — the others being the documentation and each
-program's measured impulse response.
+equal-power blend instead, which suits a chain insert better.
 
-The on-device **Bank Editor** is built with
-[schwung-canvaskit](../schwung-canvaskit); the module also declares
-`host_canvas_ui`, so davebox can host the same editor.
+Mode indices are the front panel's order. Only ROM banks 0–8 hold programs (9–14
+are zero-filled), which is one of three independent confirmations that these nine
+are the whole unit — the others being the documentation and each program's
+measured impulse response.
+
+In **M-Tap 1** the Decay/Gate knob steps the delay roughly 35 ms per position,
+from 51 ms to 474 ms; in **M-Tap 2** and **Gate** it sets the reverse swell and
+the gate length.
+
+The on-device **Bank Editor** is a single page built with
+[schwung-canvaskit](../schwung-canvaskit). The module declares `host_canvas_ui`,
+so davebox hosts the same editor.
 
 ## The rate, which is the whole ballgame
 
@@ -55,25 +62,24 @@ from an 8.000 MHz crystal, so its native rate is **31250 Hz** — which the
 documentation states independently ("Sampling Frequency: 31.25 kHz").
 
 Driving one chip cycle per *host* sample instead — the obvious shortcut, and what
-the reference JUCE plugin does — runs the emulation 41% fast: **every decay comes
-out 29% short and the whole response shifts up 5.97 semitones.** It still sounds
-like a reverb, which is why it goes unnoticed, but it is not this reverb.
+the reference plugin does — runs the emulation 41% fast: **every decay comes out
+29% short and the whole response shifts up 5.97 semitones.** It still sounds like
+a reverb, which is why it goes unnoticed, but it is not this reverb.
 
-So the module resamples 44100 → 31237.5 → 44100. `tests/test_rrv10.cpp` pins
+So the module resamples 44100 → 31237.5 → 44100. `tests/test_rrverb10.cpp` pins
 this down rather than trusting it: the multi-tap delay's first echo sits at a
 ROM-derived position (`1100·t − 601` chip cycles), and the test asserts it lands
 where the hardware puts it and *not* where the naive version would.
 
 Why 31237.5 and not 31250: the exact ratio is 882:625, an 882-phase filter bank.
-A reverb carries no pitch reference, so detuning the clock by **0.69 cents**
-buys a 17/24 ratio instead. Details and the measured alias/droop table are in
+A reverb carries no pitch reference, so detuning the clock by **0.69 cents** buys
+a 17/24 ratio instead. Details and the measured alias/droop table are in
 `src/dsp/resampler_poly.h`.
 
-Measured cost of the real `process_block`: 224 ns/frame, 28.7 µs per 128-frame
-block — under 1% of a modern desktop core, roughly 3–4% of the device's.
-Running the chip at its true (slower) rate removes ~29% of the emulator's work,
-which more than pays for the resampler: the correct version benchmarks *cheaper*
-than the naive one.
+**Cost on the device: 95.2 µs per 128-frame block, 3.28% of one core.** Running
+the chip at its true (slower) rate removes ~29% of the emulator's work, which
+more than pays for the resampler — the correct version benchmarks *cheaper* than
+the naive one.
 
 ## Build
 
@@ -82,6 +88,9 @@ than the naive one.
 ./scripts/build.sh      # cross-compile for ARM64 via Docker -> dist/
 ./scripts/install.sh    # deploy to move.local and restart the host
 ```
+
+`./scripts/install.sh --with-rom` also uploads a local `roms/rrv10.bin` if you
+keep one (it is git-ignored).
 
 Regenerate the canvas after editing `src/canvas.config.js`:
 

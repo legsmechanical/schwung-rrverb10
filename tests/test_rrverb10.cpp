@@ -1,11 +1,11 @@
-/* Native (host-arch) unit tests for the RRV-10 module.
+/* Native (host-arch) unit tests for the RRVerb-10 module.
  *
  * The load-bearing test is test_rate_is_31250: it asserts the multi-tap delay's
  * first echo lands where the HARDWARE puts it, which is the one thing a naive
  * port of this emulation gets wrong. Run: ./scripts/test.sh
  */
-#define RRV10_TEST 1
-#include "../src/dsp/rrv10.cpp"
+#define RRVERB10_TEST 1
+#include "../src/dsp/rrverb10.cpp"
 
 #include <stdio.h>
 #include <math.h>
@@ -286,7 +286,7 @@ static void test_mix_law_is_equal_power(void)
 
 int main(void)
 {
-    printf("=== RRV-10 module tests ===\n");
+    printf("=== RRVerb-10 module tests ===\n");
     test_rom_loads();
     test_rate_is_31250();
     test_reverb_actually_decays();

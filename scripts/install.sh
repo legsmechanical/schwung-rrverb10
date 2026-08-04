@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the RRV-10 module to a Move.
+# Install the RRVerb-10 module to a Move.
 #
 # Usage:
 #   ./scripts/install.sh              deploy the module
@@ -15,20 +15,20 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$REPO_ROOT"
 
 MOVE_HOST="${MOVE_HOST:-move.local}"
-DEST="/data/UserData/schwung/modules/audio_fx/rrv10"
+DEST="/data/UserData/schwung/modules/audio_fx/rrverb10"
 WITH_ROM=0
 [ "$1" = "--with-rom" ] && WITH_ROM=1
 
-if [ ! -d "dist/rrv10" ]; then
-    echo "Error: dist/rrv10 not found. Run ./scripts/build.sh first."
+if [ ! -d "dist/rrverb10" ]; then
+    echo "Error: dist/rrverb10 not found. Run ./scripts/build.sh first."
     exit 1
 fi
 
-echo "=== Installing RRV-10 Module -> ${MOVE_HOST} ==="
+echo "=== Installing RRVerb-10 Module -> ${MOVE_HOST} ==="
 
 # Module files deploy as `ableton`; the restart below SSHes as root itself.
 ssh "ableton@${MOVE_HOST}" "mkdir -p ${DEST}/roms"
-scp -r dist/rrv10/* "ableton@${MOVE_HOST}:${DEST}/"
+scp -r dist/rrverb10/* "ableton@${MOVE_HOST}:${DEST}/"
 
 if [ "$WITH_ROM" = "1" ]; then
     if [ -f roms/rrv10.bin ]; then

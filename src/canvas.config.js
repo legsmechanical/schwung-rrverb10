@@ -1,4 +1,4 @@
-/* RRV-10 canvas config for schwung-canvaskit (../schwung-canvaskit).
+/* RRVerb-10 canvas config for schwung-canvaskit (../schwung-canvaskit).
  * SOURCE for src/canvas.js — regenerate after editing:
  *   node ../schwung-canvaskit/build.mjs src/canvas.config.js src/canvas.js src/module.json
  * Concatenated between the kit prelude (cell constructors in scope) and the
@@ -25,7 +25,7 @@ function knobRange(key, label, lo, hi) {
 }
 
 const CONFIG = {
-  name: "RRV-10",
+  name: "RRVerb-10",
 
   /* The whole unit is five controls, so it is one page — no bank nesting and
    * nothing to drill into. The SHIFT picker still needs a section entry to
@@ -33,7 +33,7 @@ const CONFIG = {
    * bank there is nothing for it to switch between. */
   banks: [
     {
-      label: "RRV-10",
+      label: "RRVerb-10",
       knobs: [
         enumc("mode", "Mode", kModeLabels, kModeSquares),
         /* 16 detented switch positions on the hardware, not a continuum — but
@@ -51,7 +51,7 @@ const CONFIG = {
   ],
 
   sections: [
-    { name: "RRV-10", bank: 0 }
+    { name: "RRVerb-10", bank: 0 }
   ],
 
   icons: ["env"],
