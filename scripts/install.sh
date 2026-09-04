@@ -30,6 +30,12 @@ echo "=== Installing RRVerb-10 Module -> ${MOVE_HOST} ==="
 ssh "ableton@${MOVE_HOST}" "mkdir -p ${DEST}/roms"
 scp -r dist/rrverb10/* "ableton@${MOVE_HOST}:${DEST}/"
 
+# scp -r COPIES, it never deletes -- so a canvas.js from an older install
+# survives here forever. dAVEBOx loads that file straight off disk whenever it
+# is present, regardless of what module.json declares, so a stale copy silently
+# restores the suppressed Bank Editor on a Move-bus slot. Remove it explicitly.
+ssh "ableton@${MOVE_HOST}" "rm -f ${DEST}/canvas.js"
+
 if [ "$WITH_ROM" = "1" ]; then
     if [ -f roms/rrv10.bin ]; then
         echo "Uploading program ROM..."

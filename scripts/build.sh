@@ -52,7 +52,17 @@ ${CROSS_PREFIX}g++ -O3 -shared -fPIC \
 # modules/audio_fx/<id>/<id>.so and never consults module.json's `dsp` field.
 echo "Packaging..."
 cat src/module.json  > dist/rrverb10/module.json
-cat src/canvas.js    > dist/rrverb10/canvas.js
+# dist/ is not cleaned between builds, so simply not copying canvas.js leaves
+# the LAST build's copy sitting in the package -- caught doing exactly that on
+# the first suppressed build here. Remove it explicitly, or the tarball still
+# ships the editor dAVEBOx loads off disk.
+rm -f dist/rrverb10/canvas.js
+
+# The on-device Bank Editor is SUPPRESSED -- the host draws its own generated
+# knob grid from ui_hierarchy + chain_params. src/canvas.js stays in the tree,
+# unpackaged, so restoring this one line (plus host_canvas_ui and the two editor
+# declarations) puts the editor back exactly as it was.
+# cat src/canvas.js    > dist/rrverb10/canvas.js
 [ -f src/help.json ] && cat src/help.json > dist/rrverb10/help.json
 [ -f LICENSE ]       && cat LICENSE       > dist/rrverb10/LICENSE
 cat build/rrverb10.so   > dist/rrverb10/rrverb10.so

@@ -31,22 +31,22 @@
     "chainable": true,
     "component_type": "audio_fx",
     "requires_continuous_processing": true,
-    "host_canvas_ui": true,
     "ui_hierarchy": {
       "modes": null,
-      "_comment": "Mirror of the live ui_hierarchy served by get_param() in rrverb10.cpp. The plugin is authoritative.",
+      "_comment": "MUST stay in sync with the ui_hierarchy served by get_param() in rrverb10.cpp -- neither one is authoritative everywhere. A chain slot (fx1-4) reads THIS copy first; the Master FX bus and send slots read the PLUGIN. Drift shows a different module on each surface, silently. tests/hierarchy.test.mjs asserts they agree.",
       "levels": {
         "root": {
           "name": "RRVerb-10",
           "knobs": ["mode", "time", "pre_eq", "mix"],
           "params": [
-            { "key": "editor", "label": "Bank Editor" },
             {
               "key": "mode",
               "name": "Mode",
               "type": "enum",
               "default": 2,
-              "options": ["Room 1", "Room 2", "Hall 1", "Hall 2", "Plate 1", "Plate 2", "M-Tap 1", "M-Tap 2", "Gate"]
+              "options": ["Room 1", "Room 2", "Hall 1", "Hall 2", "Plate 1", "Plate 2", "M-Tap 1", "M-Tap 2", "Gate"],
+              "_short_comment": "The grid draws an enum as a two-line 3-char square; without these, M-Tap 1 and M-Tap 2 render as the same cell.",
+              "short_options": ["RM1", "RM2", "HL1", "HL2", "PL1", "PL2", "MT1", "MT2", "GAT"]
             },
             { "key": "time", "name": "Decay/Gate", "type": "int", "min": 0, "max": 15, "default": 8 },
             { "key": "pre_eq", "name": "Pre-EQ", "type": "int", "min": 0, "max": 100, "default": 50 },
@@ -54,16 +54,6 @@
           ]
         }
       }
-    },
-    "chain_params": [
-      {
-        "key": "editor",
-        "name": "Bank Editor",
-        "type": "canvas",
-        "canvas_script": "canvas.js#bank_editor",
-        "show_footer": false,
-        "show_value": false
-      }
-    ]
+    }
   }
 }

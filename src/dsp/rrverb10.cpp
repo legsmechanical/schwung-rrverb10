@@ -358,16 +358,20 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
     if (strcmp(key, "chain_params") == 0) {
         return snprintf(buf, buf_len,
             "["
+            /* short_options is not decoration: the generated grid draws an enum
+             * as a two-line 3-char square, and "M-Tap 1"/"M-Tap 2" both reduce
+             * to M/TAP -- two different modes rendering as the SAME cell. These
+             * are the canvas's own labels (canvas.config.js kModeSquares). */
             "{\"key\":\"mode\",\"name\":\"Mode\",\"type\":\"enum\",\"default\":2,"
               "\"options\":[\"Room 1\",\"Room 2\",\"Hall 1\",\"Hall 2\",\"Plate 1\","
-              "\"Plate 2\",\"M-Tap 1\",\"M-Tap 2\",\"Gate\"]},"
+              "\"Plate 2\",\"M-Tap 1\",\"M-Tap 2\",\"Gate\"],"
+              "\"short_options\":[\"RM1\",\"RM2\",\"HL1\",\"HL2\",\"PL1\","
+              "\"PL2\",\"MT1\",\"MT2\",\"GAT\"]},"
             "{\"key\":\"time\",\"name\":\"Decay/Gate\",\"type\":\"int\",\"min\":0,\"max\":15,\"default\":8},"
             "{\"key\":\"pre_eq\",\"name\":\"Pre-EQ\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":50},"
             /* unit "%%" with an explicit max:100 tells the shared formatter the
              * values are already in display range, not normalised 0..1. */
-            "{\"key\":\"mix\",\"name\":\"Mix\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":30,\"unit\":\"%%\"},"
-            "{\"key\":\"editor\",\"name\":\"Bank Editor\",\"type\":\"canvas\","
-              "\"canvas_script\":\"canvas.js#bank_editor\",\"show_footer\":false,\"show_value\":false}"
+            "{\"key\":\"mix\",\"name\":\"Mix\",\"type\":\"int\",\"min\":0,\"max\":100,\"default\":30,\"unit\":\"%%\"}"
             "]");
     }
 
@@ -383,8 +387,7 @@ static int v2_get_param(void *instance, const char *key, char *buf, int buf_len)
               "\"root\":{"
                 "\"name\":\"RRVerb-10\","
                 "\"knobs\":[\"mode\",\"time\",\"pre_eq\",\"mix\"],"
-                "\"params\":[{\"key\":\"editor\",\"label\":\"Bank Editor\"},"
-                            "\"mode\",\"time\",\"pre_eq\",\"mix\"]"
+                "\"params\":[\"mode\",\"time\",\"pre_eq\",\"mix\"]"
               "}"
             "}}";
         int len = (int)strlen(h);
