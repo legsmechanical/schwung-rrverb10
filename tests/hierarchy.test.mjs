@@ -110,16 +110,17 @@ const jsonParams = (jsonRoot.params || []).filter((p) => p && typeof p === "obje
     .map((p) => p.key);
   ok(!links.includes("editor"), "neither hierarchy links an `editor` row");
 
-  /* Two separate things, and the second is the one that bit. `dist/` is not
-   * cleaned between builds, so dropping the copy line alone left the PREVIOUS
-   * build's canvas.js sitting in the package — the artifact still shipped the
-   * editor while every declaration said it was gone. */
+  /* Two separate things, and the second bit TWICE in one session. `dist/` is
+   * not cleaned by hand, so dropping the copy line alone leaves the PREVIOUS
+   * build's canvas.js sitting in the package — the artifact still ships the
+   * editor while every declaration says it is gone. (The same trap then shipped
+   * a stale help.json.) So the build must WIPE dist, not remove one file. */
   const copies = buildSh.split("\n").filter(
     (l) => /canvas\.js/.test(l) && !/^\s*#/.test(l) && !/^\s*rm\s/.test(l));
   ok(copies.length === 0,
      "build.sh copies no canvas.js into dist, got " + JSON.stringify(copies));
-  ok(/^\s*rm -f [^\n]*dist[^\n]*canvas\.js/m.test(buildSh),
-     "and REMOVES a stale one left in dist by an earlier build");
+  ok(/^\s*rm -rf ["']?dist/m.test(buildSh),
+     "and WIPES dist before packaging, so nothing from an older build survives");
 
   ok(/rm -f [^\n]*canvas\.js/.test(installSh),
      "install.sh REMOVES any canvas.js left on the device by an older install");

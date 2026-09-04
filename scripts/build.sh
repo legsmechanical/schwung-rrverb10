@@ -33,6 +33,13 @@ cd "$REPO_ROOT"
 echo "=== Building RRVerb-10 Module ==="
 echo "Cross prefix: $CROSS_PREFIX"
 
+# ⭑ WIPE dist FIRST — every file below is regenerated from src, so anything
+# surviving here came from an OLDER build. Not hypothetical: suppressing the
+# canvas by dropping its packaging line left the previous build's canvas.js in
+# the tarball, and editing help.json without rebuilding shipped the stale copy —
+# twice in one session, both silent, both caught only by LISTING the artifact.
+# Removing a file from the build must remove it from the PACKAGE.
+rm -rf dist/rrverb10
 mkdir -p build dist/rrverb10
 
 # -O3, not -Ofast. BossEmu is exact 16-bit integer arithmetic with deliberate
@@ -56,7 +63,6 @@ cat src/module.json  > dist/rrverb10/module.json
 # the LAST build's copy sitting in the package -- caught doing exactly that on
 # the first suppressed build here. Remove it explicitly, or the tarball still
 # ships the editor dAVEBOx loads off disk.
-rm -f dist/rrverb10/canvas.js
 
 # The on-device Bank Editor is SUPPRESSED -- the host draws its own generated
 # knob grid from ui_hierarchy + chain_params. src/canvas.js stays in the tree,
