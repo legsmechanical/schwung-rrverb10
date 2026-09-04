@@ -119,19 +119,6 @@
         "this is one blend",
         "instead."
       ]
-    },
-    {
-      "title": "Bank Editor",
-      "lines": [
-        "Opens the on-device",
-        "canvas editor.",
-        "",
-        "Jog steps banks. Hold",
-        "SHIFT for the section",
-        "picker.",
-        "",
-        "Shift+Back closes it."
-      ]
     }
   ]
 }

@@ -51,9 +51,12 @@ In **M-Tap 1** the Decay/Gate knob steps the delay roughly 35 ms per position,
 from 51 ms to 474 ms; in **M-Tap 2** and **Gate** it sets the reverse swell and
 the gate length.
 
-The on-device **Bank Editor** is a single page built with
-[schwung-canvaskit](../schwung-canvaskit). The module declares `host_canvas_ui`,
-so davebox hosts the same editor.
+The module has no UI of its own: the host draws its own knob page from the
+parameters declared below, which is what nearly every module on the platform
+does. There *was* an on-device **Bank Editor**, a single page built with
+[schwung-canvaskit](../schwung-canvaskit); it is suppressed as of v0.3.0+, and
+`src/canvas.config.js` / `src/canvas.js` stay in the tree so it can be restored.
+See `CLAUDE.md` for what to put back.
 
 ## The rate, which is the whole ballgame
 
