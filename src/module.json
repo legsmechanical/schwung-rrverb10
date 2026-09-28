@@ -30,7 +30,6 @@
     "audio_out": true,
     "chainable": true,
     "component_type": "audio_fx",
-    "requires_continuous_processing": true,
     "ui_hierarchy": {
       "modes": null,
       "_comment": "MUST stay in sync with the ui_hierarchy served by get_param() in rrverb10.cpp -- neither one is authoritative everywhere. A chain slot (fx1-4) reads THIS copy first; the Master FX bus and send slots read the PLUGIN. Drift shows a different module on each surface, silently. tests/hierarchy.test.mjs asserts they agree.",
